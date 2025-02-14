@@ -1,0 +1,24 @@
+node {
+    // Define Maven tool
+    def mavenHome = tool name: 'maven3.8.5'
+
+    stage('Git Checkout Code') {
+        // Checkout code from GitHub
+        git branch: 'development', credentialsId: 'b53fada2-2f3b-4809-af99-13b23db78bf7', url: 'https://github.com/nagarajadevops/maven-web-application-1201.git'
+    }
+
+    stage('Build') {
+        // Build the Maven project
+        sh "${mavenHome}/bin/mvn clean package"
+        // List the contents of the target directory (for debugging)
+        sh "ls -l target"
+    }
+
+    stage('Deploy to Tomcat Server') {
+        // Use sshagent for SSH authentication
+        sshagent(['37ba87bd-4f09-491b-89fd-fec52096cecb']) {
+            // Deploy the .war file to the Tomcat server
+            sh 'scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.201.82.3:/home/ec2-user/apache-tomcat-9.0.98/webapps'
+        }
+    }
+}
